@@ -22,7 +22,7 @@ export class UserController {
             users
         })
     }
-
+    @UseGuards(JwtAuthGuard)
     @Get('/:id')
     async findById(@Res() response, @Param('id') id) {
         const user = await this.UserService.findOne(id);
