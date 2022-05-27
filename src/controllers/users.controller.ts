@@ -9,7 +9,7 @@ export class UserController {
 
     @Post()
     async createUser(@Res() response, @Body() User: User) {
-        const newUser = await this.UserService.createBook(User);
+        const newUser = await this.UserService.createUser(User);
         return response.status(HttpStatus.CREATED).json({
             newUser
         })
@@ -34,10 +34,17 @@ export class UserController {
     @Post("login")
     async Userlogin(@Res() response, @Body() data) {
         const loginUser = await this.UserService.userLogin(data);
-        const token = await this.JwtService.sign(loginUser)
-        return response.status(HttpStatus.CREATED).json({
-            token
-        })
+        if (typeof loginUser == "string") {
+            return response.status(HttpStatus.CREATED).json({
+                loginUser
+            })
+        } else {
+            const token = await this.JwtService.sign(loginUser)
+            return response.status(HttpStatus.CREATED).json({
+                token
+            })
+        }
+
     }
 
 

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { InjectModel } from "@nestjs/sequelize";
 import { User } from "../models/users.model";
-
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class UserService {
     constructor(
@@ -20,20 +20,26 @@ export class UserService {
             },
         });
     }
-    //addBook
-    async createBook(user: User): Promise<User> {
-        const newUser = new this.userModel(user);
+
+    async createUser(user: User): Promise<User> {
+        const saltOrRounds = 10;
+        const hash = await bcrypt.hash(user.password, saltOrRounds);
+        const UserData = { "name": user.name, "username": user.username, "email": user.email, "password": hash, "contact": user.contact }
+        const newUser = new this.userModel(UserData);
         return newUser.save();
     }
     async userLogin(data) {
         const alldata = await this.userModel.findOne({
             where: {
-                email: data.email, password: data.password
+                email: data.email
             },
         });
         if (alldata != null) {
-            const payload = { username: alldata.username, sub: alldata.id, email: alldata.email }
-            return payload
+            if (await bcrypt.compare(data.password, alldata.password) == true) {
+                return { username: alldata.username, sub: alldata.id, email: alldata.email }
+            } else {
+                return "invalid email and password"
+            }
         } else {
             return "invalid email and password"
         }
